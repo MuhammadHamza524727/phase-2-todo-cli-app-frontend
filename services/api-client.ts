@@ -30,12 +30,14 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Remove tokens and redirect to login if unauthorized
-      // Only use localStorage and window in browser environment
-      if (typeof window !== 'undefined') {
+      const requestUrl = error.config?.url || '';
+      const isAuthEndpoint = requestUrl.includes('/api/me') || requestUrl.includes('/api/login') || requestUrl.includes('/api/register');
+
+      // For non-auth endpoints, clear token - React auth context will handle the redirect
+      if (!isAuthEndpoint && typeof window !== 'undefined') {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+        // DON'T do window.location.href redirect - let React handle it
       }
     }
     return Promise.reject(error);

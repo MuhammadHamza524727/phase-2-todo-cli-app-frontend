@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../../lib/auth-context';
 import { fetchTasks, createTask, updateTask, deleteTask, toggleTaskCompletion } from '../../services/tasks';
 import TaskList from '../../components/tasks/TaskList';
@@ -12,6 +13,14 @@ const DashboardPage = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -24,8 +33,9 @@ const DashboardPage = () => {
       setLoading(true);
       const tasksData = await fetchTasks();
       setTasks(tasksData);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load tasks');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load tasks';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -35,8 +45,9 @@ const DashboardPage = () => {
     try {
       const newTask = await createTask({ title, description });
       setTasks([newTask, ...tasks]);
-    } catch (err: any) {
-      setError(err.message || 'Failed to create task');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create task';
+      setError(errorMessage);
     }
   };
 
@@ -44,8 +55,9 @@ const DashboardPage = () => {
     try {
       const updatedTask = await updateTask(id, updates);
       setTasks(tasks.map(task => (task.id === id ? updatedTask : task)));
-    } catch (err: any) {
-      setError(err.message || 'Failed to update task');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update task';
+      setError(errorMessage);
     }
   };
 
@@ -53,8 +65,9 @@ const DashboardPage = () => {
     try {
       await deleteTask(id);
       setTasks(tasks.filter(task => task.id !== id));
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete task');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete task';
+      setError(errorMessage);
     }
   };
 
@@ -65,8 +78,9 @@ const DashboardPage = () => {
         const updatedTask = await toggleTaskCompletion(id, !currentTask.completed);
         setTasks(tasks.map(task => (task.id === id ? updatedTask : task)));
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to toggle task completion');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to toggle task completion';
+      setError(errorMessage);
     }
   };
 
@@ -82,9 +96,6 @@ const DashboardPage = () => {
   }
 
   if (!isAuthenticated) {
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login';
-    }
     return null;
   }
 

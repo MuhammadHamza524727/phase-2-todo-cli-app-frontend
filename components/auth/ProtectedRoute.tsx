@@ -13,7 +13,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
-  // Show loading spinner while checking auth status
+  React.useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -22,16 +27,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    // Using window.location to ensure redirect happens outside of React's render cycle
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login';
-    }
     return null;
   }
 
-  // Render children if authenticated
   return <>{children}</>;
 };
 

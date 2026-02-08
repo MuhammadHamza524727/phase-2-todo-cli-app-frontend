@@ -14,7 +14,14 @@ const SignupPage = () => {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
-  const { signup } = useAuth();
+  const { signup, isAuthenticated, isLoading } = useAuth();
+
+  // Redirect to dashboard if already authenticated
+  React.useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.replace('/dashboard');
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,14 +47,22 @@ const SignupPage = () => {
     setLoading(true);
     try {
       await signup({ email, password, password_confirm: confirmPassword, name });
-      router.push('/dashboard');
-      router.refresh();
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during signup');
+      router.replace('/dashboard');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred during signup';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
+
+  if (isLoading || isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-950 to-violet-950">
+        <div className="animate-spin rounded-full h-14 w-14 border-b-2 border-violet-400"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-950 to-violet-950 p-6 relative overflow-hidden">

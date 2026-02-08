@@ -1,3 +1,4 @@
+import axios from 'axios';
 import apiClient from './api-client';
 import { User } from '../types';
 
@@ -37,11 +38,11 @@ export const loginUser = async (credentials: LoginCredentials): Promise<LoginRes
     }
 
     return { user, token };
-  } catch (error: any) {
-    if (error.response) {
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error) && error.response) {
       // Server responded with error status
-      throw new Error(error.response.data.error || 'Login failed');
-    } else if (error.request) {
+      throw new Error((error.response.data as { error?: string }).error || 'Login failed');
+    } else if (axios.isAxiosError(error) && error.request) {
       // Request was made but no response received
       throw new Error('Network error. Please check your connection.');
     } else {
@@ -65,11 +66,11 @@ export const signupUser = async (userData: SignupData): Promise<SignupResponse> 
     }
 
     return { user, token };
-  } catch (error: any) {
-    if (error.response) {
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error) && error.response) {
       // Server responded with error status
-      throw new Error(error.response.data.error || 'Signup failed');
-    } else if (error.request) {
+      throw new Error((error.response.data as { error?: string }).error || 'Signup failed');
+    } else if (axios.isAxiosError(error) && error.request) {
       // Request was made but no response received
       throw new Error('Network error. Please check your connection.');
     } else {

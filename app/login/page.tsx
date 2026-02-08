@@ -13,7 +13,14 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, isAuthenticated, isLoading } = useAuth();
+
+  // Redirect to dashboard if already authenticated
+  React.useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.replace('/dashboard');
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,14 +40,22 @@ const LoginPage = () => {
 
     try {
       await login(email, password);
-      router.push('/dashboard');
-      router.refresh();
-    } catch (err: any) {
-      setError(err.message || 'Invalid credentials or server error');
+      router.replace('/dashboard');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Invalid credentials or server error';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
+
+  if (isLoading || isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-950 to-violet-950">
+        <div className="animate-spin rounded-full h-14 w-14 border-b-2 border-violet-400"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-950 to-violet-950 p-6 relative overflow-hidden">
@@ -122,7 +137,7 @@ const LoginPage = () => {
           </form>
 
           <p className="mt-10 text-center text-indigo-200/80 text-sm">
-            Don't have an account?{' '}
+            Don{'\''}t have an account?{' '}
             <Link
               href="/signup"
               className="font-semibold text-violet-300 hover:text-violet-200 underline underline-offset-4 transition-colors"
